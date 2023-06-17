@@ -26,3 +26,30 @@ def spectral_decomp_skew_sym(B, C):
     eig_vals_skew = (rot.conj().T @ np.diag(eig_vals) @ rot).real
 
     return eig_vals_skew, eig_vecs
+
+# check for bugs 
+def spectral_symmetrization(W, return_decompose=True):
+    # W shoud be skew-symmetric
+    assert np.allclose(np.linalg.norm(W + W.T, ord='fro'), 1e-10)
+
+    e_complex, V_complex = np.linalg.eig(W)
+    # Discard zero eigenvalues and corresponding eigenvectors.
+    idx = abs(e_complex.imag) > 1e-12
+    V_complex = V_complex[:,idx]
+    e_complex = e_complex[idx]
+
+    dtype_ = W.dtype
+    k = W.shape[0]
+
+    # Eigenvectors of skew-symmetrix matrix are of form (a+ib, a-ib), hence we 
+    # transform this into ((a-b)/2, (a+b)/2) by multiplying rotation matrix and 
+    # taking real-value part. 
+    rot = np.kron(np.eye(len(e_complex)//2), np.array([[1, -1j], [-1j, 1]]))
+    V = (V_complex @ rot).real
+    E_skew = (np.diag(e_complex)@rot).real
+    E_sym_pre = np.abs(np.diag(E_skew, k=1)[::2])
+    E_sym = np.diag(np.repeat(E_sym_pre,2,1)) 
+    if return_decompose:
+        return V @ E_sym @ V.T
+    else:
+        return V, E_sym
