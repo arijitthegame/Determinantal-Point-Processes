@@ -25,13 +25,13 @@ def main():
     np.random.seed(random_state)
 
     if nonuniform:
-        VB = torch.DoubleTensor(get_nonuniform_cluster_matrix(n, d, num_clusters)) #fix
+        VB = np.random.rand(get_nonuniform_cluster_matrix(n, d, num_clusters)) #fix
         V = VB[:, :d1]
         B = VB[:, d1:]
     else:
-        V = torch.randn(n, d1, dtype=torch.float64) / np.sqrt(d1)
-        B = torch.randn(n, d2, dtype=torch.float64) / np.sqrt(d2)
-    D = torch.randn(d2, d2, dtype=torch.float64)
+        V = np.random.rand(n, d1) / np.sqrt(d1)
+        B = np.random.rand(n, d2) / np.sqrt(d2)
+    D = np.random.rand(d2, d2)
     C = D - D.T
 
     # Cholesky-based sampling
@@ -40,8 +40,8 @@ def main():
     #   sampling: M of K-by-K matrix multiplications (O(nd^2) time)
     print(f"==================== Cholesky-based sampling ====================")
     tic = time.time()
-    VB = torch.cat((V, B), dim=1)
-    CC = torch.block_diag(torch.eye(d1), C)
+    VB = np.concatenate((V, B), axis=1)
+    CC = torch.block_diag(torch.eye(d1), C) # need fix
     CK = CC @ (torch.eye(d, dtype=V.dtype) + VB.T @ VB @ CC).inverse()
     time_inner = time.time() - tic
     print(f"inner matrix computation time : {time_inner:.5f} sec")
