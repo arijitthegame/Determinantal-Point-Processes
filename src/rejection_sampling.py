@@ -10,7 +10,7 @@ def decompose_proposal_dpp(B1, B2, C):
     sigmas = np.abs(np.diag(eigen_vals2, k=1)[::2]) 
     sigmas_duplicated = np.repeat(sigmas, 2) #possible bug
     X_hat = np.concatenate((eigen_vals1, sigmas_duplicated))
-    Z_hat = np.hstack((eigen_vecs1, eigen_vecs2)) #fix
+    Z_hat = np.hstack((eigen_vecs1, eigen_vecs2))
 
     # re-orthonormalize
     eigen_vals, eigen_vecs = spectral_decomp_sym(Z_hat * X_hat.sqrt())
