@@ -49,9 +49,9 @@ class TreeParentNode(TreeNode):
         prob = np.random.rand()
 
         if prob < p_l / (p_l + p_r):
-            return self.left.sampling(query_matrix, rng, BTB_all)
+            return self.left.sampling(query_matrix, BTB_all)
         else:
-            return self.right.sampling(query_matrix, rng, BTB_all)
+            return self.right.sampling(query_matrix, BTB_all)
 
 
 def split_items(items):
