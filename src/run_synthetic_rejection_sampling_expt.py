@@ -2,7 +2,6 @@ import time
 from itertools import combinations
 import numpy as np
 from scipy.linalg import block_diag
-from sklearn.utils import check_random_state
 
 from utils import get_nonuniform_cluster_matrix
 from cholesky_sampling import cholesky_based_sampling
