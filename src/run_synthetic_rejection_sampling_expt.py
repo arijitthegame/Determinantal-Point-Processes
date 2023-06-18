@@ -1,6 +1,7 @@
 import time
 from itertools import combinations
 import numpy as np
+from scipy.linalg import block_diag
 from sklearn.utils import check_random_state
 
 from utils import get_nonuniform_cluster_matrix
@@ -25,7 +26,7 @@ def main():
     np.random.seed(random_state)
 
     if nonuniform:
-        VB = np.random.rand(get_nonuniform_cluster_matrix(n, d, num_clusters)) #fix
+        VB = np.random.rand(get_nonuniform_cluster_matrix(n, d, num_clusters))
         V = VB[:, :d1]
         B = VB[:, d1:]
     else:
@@ -41,15 +42,15 @@ def main():
     print(f"==================== Cholesky-based sampling ====================")
     tic = time.time()
     VB = np.concatenate((V, B), axis=1)
-    CC = torch.block_diag(torch.eye(d1), C) # need fix
-    CK = CC @ (torch.eye(d, dtype=V.dtype) + VB.T @ VB @ CC).inverse()
+    CC = block_diag(np.eye(d1), C) 
+    CK = CC @ np.linalg.inv(np.eye(d, dtype=V.dtype) + VB.T @ VB @ CC)
     time_inner = time.time() - tic
     print(f"inner matrix computation time : {time_inner:.5f} sec")
 
     tic = time.time()
     samples_chol = []
     for _ in range(num_samples):
-        samples_chol.append(cholesky_based_sampling(VB, CK, rng))
+        samples_chol.append(cholesky_based_sampling(VB, CK))
     time_chol = time.time() - tic
     print(f"chol sampling time: {time_chol:.5f} sec")
 
@@ -60,8 +61,8 @@ def main():
     tic = time.time()
     X_hat, Z_hat, sigmas = decompose_proposal_dpp(V, B, C)
     tree = construct_tree(np.arange(n), Z_hat.T)
-    get_det_L = lambda Y: torch.det(V[Y, :] @ V[Y, :].T + B[Y, :] @ C @ B[Y, :].T).item()
-    get_det_Lhat = lambda Y: torch.det((Z_hat[Y, :] * X_hat) @ Z_hat[Y, :].T).item()
+    get_det_L = lambda Y: np.linalg.det(V[Y, :] @ V[Y, :].T + B[Y, :] @ C @ B[Y, :].T).item() #fix
+    get_det_Lhat = lambda Y: np.linalg.det((Z_hat[Y, :] * X_hat) @ Z_hat[Y, :].T).item() #fix
     time_spec = time.time() - tic
     print(f"proposal construct time: {time_spec:.3f} sec")
 
@@ -69,7 +70,7 @@ def main():
     samples_reject = []
     num_rejections = []
     for _ in range(num_samples):
-        sample, num_rejects = rejection_sampling_ndpp(tree, Z_hat, X_hat, get_det_L, get_det_Lhat, rng)
+        sample, num_rejects = rejection_sampling_ndpp(tree, Z_hat, X_hat, get_det_L, get_det_Lhat)
         samples_reject.append(sample)
         num_rejections.append(num_rejects)
     time_rjtn = time.time() - tic
