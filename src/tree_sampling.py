@@ -170,8 +170,6 @@ def tree_sampling_dpp(tree, V, eigen_vals):
 
 
 def kdpp_tree_sampling_customized(tree, W, B, k):
-    
-    rng = np.random.RandomState()
 
     XTX = tree.Sigma   
     d = XTX.shape[0]
@@ -179,7 +177,7 @@ def kdpp_tree_sampling_customized(tree, W, B, k):
     E_poly = elementary_polynomial(k, eig_vals)
 
     # Phase 1.
-    selected_indices = sample_kdpp_eigen_vecs(k, eig_vals, E_poly, rng)
+    selected_indices = sample_kdpp_eigen_vecs(k, eig_vals, E_poly)
     
     # Selected elementary DPP has the kernel B @ A @ B.T where
     # A := \sum_{i \in E} (1/eig_vals_i) * eig_vec_i @ eig_vec_i.T
@@ -190,14 +188,14 @@ def kdpp_tree_sampling_customized(tree, W, B, k):
     sample = []
     C = np.zeros((d, len(selected_indices)), dtype=W.dtype)
     for i in range(len(selected_indices)):
-        new_item = tree.sampling(A, rng)
+        new_item = tree.sampling(A)
 
         # For fast-leaves-tree. compute probabilities and select one of them
         if type(new_item) in [list, np.ndarray]: 
             probs_candidates = ((B[new_item,:] @ A) * B[new_item,:]).sum(1)
             probs_candidates = probs_candidates.clip(0)
             probs_candidates = probs_candidates / probs_candidates.sum()
-            idx = rng.choice(len(new_item), 1, p=probs_candidates)[0]
+            idx = np.random.choice(len(new_item), 1, p=probs_candidates)[0]
             new_item = new_item[idx]
 
         C[:,i] = B[new_item,:] / np.sqrt(B[new_item,:] @ A @ B[new_item,:])
